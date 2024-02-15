@@ -19,6 +19,8 @@ Some things to keep in mind:
 
 * You can hover over any fancy character in VSCode to see how to type it.
 
+
+
 Our goal today: let's prove some interesting things about numbers!
 We're looking a little bit ahead, preparing for the number theory
 section of this class. In the process, we'll get familiar with the proof rules
@@ -26,6 +28,7 @@ for the *quantifiers* `∀` and `∃`.
 
 (If you don't remember those rules, check out the Lecture 7 notes and the
 reference.)
+
 
 ## A few helpful tactics
 
@@ -56,6 +59,7 @@ try `numbers`. If it's a comparison between some variables and 0, try
 
 -/
 
+
 /-
 
 ## Problem 1
@@ -73,6 +77,7 @@ theorem problem_1 : ∀ n : ℕ, ∃ x : ℕ, n < x := by
   existsi (n + 1)
   linarith
   done
+
 
 /-
 
@@ -94,8 +99,8 @@ For example:
 
 example (x : ℕ) : x ∣ 10 → x ∣ 10 := by
   assume hx10
-  dsimp dvd — change the goal to an existential
-  dsimp dvd at hx10 - change the hypothesis hx10 to an existential
+  dsimp dvd -- change the goal to an existential
+  dsimp dvd at hx10 -- change the hypothesis hx10 to an existential
   assumption
   done
 
@@ -107,6 +112,7 @@ just like for the existential statement.
 If we want to use a "divides" hypotheses, we can `eliminate` it directly,
 again just like for an existential.
 But it should never hurt to use `dsimp` if you want to.
+
 
 First, practice an introduction:
 
@@ -135,6 +141,7 @@ theorem problem_3 : ∀ x : ℕ, x ∣ 22 → x ∣ 220 := by
   linarith
   done
 
+
 /-
 ## Problem 4
 
@@ -147,6 +154,8 @@ if you have a variable named `my_var`.
 We say that we have *instantiated* the universal statement
 with `100` and `my_var`, respectively, "plugging in" these values for `x`.
 
+
+
 Your creative step in this problem is to decide how to instantiate `h`.
 `h` says a certain proposition is true for every `x`.
 Which value of `x` is useful to you?
@@ -156,6 +165,7 @@ There's a hint at the bottom of this file.
 
 Notice that we've already introduced the hypothesis `h` for you in this problem.
 No need to start with `assume`.
+
 
 -/
 
@@ -171,6 +181,7 @@ theorem problem_4 (a b : ℤ) (h : ∀ x : ℤ, 2*a ≤ x ∨ x ≤ 2*b) : a ≤
     linarith
   }
   done
+
 
 /-
 
@@ -195,6 +206,7 @@ An example:
 
 -/
 
+
 example (p q : Prop) (hp : p) (hq : q) : p := by
   have hpq : p ∧ q -- after this line, the goal becomes to show `p ∧ q`
   { split_goal     -- use brackets to focus on the first goal
@@ -203,6 +215,8 @@ example (p q : Prop) (hp : p) (hq : q) : p := by
   -- at this point in the proof, we have a new hypothesis `hpq : p ∧ q`.
   -- but this was just a silly example so we don't need to use it
   assumption
+
+
 
 /- Informally, this is like "reasoning forward". From things you already know,
 you're deriving a new thing, and then using that new thing later on.
@@ -213,9 +227,12 @@ can you state and use?
 
 -/
 
+
+
 theorem bonus_challenge (p : Prop) : ¬ (p ↔ ¬ p) := by
   sorry
   done
+
 
 /-
 
@@ -226,5 +243,6 @@ if `2*a ≤ a + b`, then `a ≤ b`,
 since we can subtract `a` from both sides.
 
 -/
+
 
 end HW2
