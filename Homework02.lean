@@ -1,241 +1,157 @@
 import BrownCs22.Library.Tactics
+import BrownCs22.Library.Defs
 import AutograderLib
 
-namespace HW2
-
-open Dvd
+-- don't change these lines
+namespace HW3
+open Set BrownCs22.Set
+variable (U : Type)
+variable (A B : Set U)
 
 /-
 
-# Welcome to the Lean section of HW2!
+# Welcome to the Lean section of HW3!
 
-In this assignment, we're going to move beyond random letters.
-Enough of those `p`, `q`, `r` problems.
+In these problems, we're going to get a little practice formally proving
+set equalities. We've seen two techniques for doing this on paper:
 
-Some things to keep in mind:
+* With the set-element method, we argue that `A = B` by showing that
+  `A ⊆ B` and `B ⊆ A`.
+* With the algebraic method, we can prove that sets are equal by rewriting
+  one or both sides with algebraic identities like `(Aᶜ)ᶜ = A`, until we
+  have identical expressions.
 
-* The CS22 Lean docs, linked from our website, have notes on
-  which tactics we've seen and what they do. Check it out!
+We can do both of these in Lean. In this assignment you'll prove two
+set equalities, one with each method.
 
-* You can hover over any fancy character in VSCode to see how to type it.
+**Notes**:
 
+* Remember that in Lean, we write "the complement of A" as `Aᶜ` instead
+  of using a bar over the letter. (Diacritics are hard in a text editor!)
 
+* You can type `⊆` using `\sub`.
 
-Our goal today: let's prove some interesting things about numbers!
-We're looking a little bit ahead, preparing for the number theory
-section of this class. In the process, we'll get familiar with the proof rules
-for the *quantifiers* `∀` and `∃`.
-
-(If you don't remember those rules, check out the Lecture 7 notes and the
-reference.)
-
-
-## A few helpful tactics
-
-In addition to the proof rules for quantifiers, these tactics may be useful
-to finish your proofs. Depending on how you do your proofs, you may not
-need all of these.
-
-* `positivity`: if your goal is to show something is positive or nonnegative
-  (like `0 < x`, `x ≥ 0`, `0 ≤ a^2`, ...) and this "obviously" follows from
-  your hypotheses, write `positivity` to finish that goal. This tactic knows
-  basic facts like "natural numbers are nonnegative" and "the square of a
-  positive number is positive." It does not know complicated arithmetic.
-
-* `numbers`: If your goal is to show an arithmetic statement about numerals,
-  like `5 + 5 = 10` or `1000 < 50000000`, `numbers` will close the goal.
-  It's basically a calculator!
-
-* `linarith`: stands for "linear arithmetic." (If you don't know this term,
-  don't worry.) `linarith` does similar things to `positivity` and `numbers`,
-  but it can do some simple arithmetic, and use hypotheses.
-  For instance, if you know `h1 : x < 10` and `h2 : x + y < 20`, `linarith`
-  can prove the goal `3*x + 2*y < 50`. It can also prove things like
-  `n < n + 10` with no extra hypotheses.
-
-A good strategy: if you have a goal with no variables in it (only numbers),
-try `numbers`. If it's a comparison between some variables and 0, try
-`positivity`. Otherwise, try `linarith`.
+* You can type `ᶜ` using `\compl` or `\^c`.
 
 -/
 
 
 /-
 
-## Problem 1
+## Problem 1: the set-element method
 
-Here's some practice with quantifiers. Read the statement of this question
-out loud to yourself -- what is it stating?
+We saw two important tactics in lecture for set-element proofs in Lean:
 
-Remember `ℕ = {0, 1, 2, ...}`, the natural numbers.
+* `extensionality`: given a goal `A = B` where `A` and `B` are sets,
+  changes the goal to showing `∀ x, x ∈ A ↔ x ∈ B`.
+  The name "extensionality" refers to the property that two sets are equal
+  if they have the same elements.
+
+* `set_simplify`: unfolds the "logic" of a set membership proposition.
+  For instance, `x ∈ A ∩ B` simplifies to `x ∈ A ∧ x ∈ B`.
+  `x ∈ A \ C` simplifies to `x ∈ A ∧ ¬(x ∈ C)`.
+  Calling `set_simplify` will simplify the goal and all hypotheses.
+
+Use these techniques to prove the following.
+Starting with `extensionality` is probably a good move!
+Then think about the last few homeworks; how do you prove an `↔` goal?
 
 -/
 
-@[autograded 3]
-theorem problem_1 : ∀ n : ℕ, ∃ x : ℕ, n < x := by
-  fix n
-  existsi (n + 1)
-  linarith
-  done
-
-
-
+@[autograded 4]
+theorem problem_1 : (A ∪ B) ∩ B = B := by
+  ext x
+  set_simplify
+  split_goal
+  { assume hleft
+    eliminate hleft with h_or h_and
+    assumption }
+  { assume hright
+    split_goal
+    { right
+      assumption }
+    { assumption }
+     }
+  done
 
 
 /-
 
-## Problems 2-3
+## Problem 2: the algebraic method
 
-We say that a natural number `x : ℕ` *divides* a natural number `y : ℕ`,
-written `x ∣ y`, if there exists `c : ℕ` such that `y = x * c`.
+What you just proved is sometimes called an "absorption law," since the
+intersection `A ∩ B` gets "absorbed" into the bigger set `A`.
+This is an example of a useful rewrite rule: if we ever see the pattern
+`X ∪ (X ∩ Y)` in a proposition, we can replace it with `X`, since we know
+that these sets are the same.
 
-This is an existential claim in disguise! Written in logic, we can say
-`x ∣ y` is defined to mean `∃ c : ℕ, y = x * c`.
+As we saw in Lecture 8, the `rewrite` tactic lets us do this in Lean.
+Here's an example of using the above rule, and another useful rewrite rule:
 
-If you see a statement like `x ∣ y` in your goal or in a hypothesis,
-you can use the tactic `dsimp dvd` to change it to the equivalent existential.
-This stands for "definition simplify".
-(In the future, we'll use `dsimp` to unfold more than just division.)
-
-For example:
 -/
 
-example (x : ℕ) : x ∣ 10 → x ∣ 10 := by
-  assume hx10
-  dsimp dvd -- change the goal to an existential
-  dsimp dvd at hx10 -- change the hypothesis hx10 to an existential
-  assumption
-  done
+
+example : A ∩ ((Aᶜ ∩ B) ∪ Aᶜ) = ∅ := by
+  rewrite inter_union_cancel_left
+  rewrite inter_compl_self
+  reflexivity
+  done
 
 /-
 
-We don't *need* to use `dsimp`.
-If we want to prove a "divides" statement, we use `existsi` directly,
-just like for the existential statement.
-If we want to use a "divides" hypotheses, we can `eliminate` it directly,
-again just like for an existential.
-But it should never hurt to use `dsimp` if you want to.
+The name Lean gives to our identity from problem 1 is
+`inter_union_cancel_left`. We also used `inter_compl_self`, which says
+`A ∩ Aᶜ = ∅`. Hover over the name in the proof above to see this statement!
 
+The final tactic, `reflexivity`, tells Lean that we are done: we can close
+any goal of the form `P ↔ P`.
 
-First, practice an introduction:
+The `rewrite` tactic will use the identity "left to right":
+it will look for the pattern on the left hand side of the identity,
+and replace it with the right hand side. For example, `inter_compl_self`
+says that `s ∩ sᶜ = ∅`, so it replaces `s ∩ sᶜ` with `∅`.
+Sometimes you can use a rule in reverse direction, right to left,
+using the symbol `←` (typed `\l` or `\<-`). For example:
 
 -/
 
-@[autograded 1]
-theorem problem_2 : 220 ∣ 880 := by
-  existsi 4
-  numbers
-  done
+example : Aᶜ ∩ Aᶜ = Aᶜ := by
+  rewrite ← compl_union -- we have used de morgan's law "backward",
+                        -- changing `Aᶜ ∩ Aᶜ` to `(A ∪ A)ᶜ`.
+  rewrite union_self
+  reflexivity
+  done
 
 /-
+But this won't work for every identity! Think about `inter_compl_self`.
+Backward, this would say that if you see the pattern `∅`, you can replace
+it with `s ∩ sᶜ`. But how would Lean know what set `s` you wanted to use?
+It could be anything! If you see some funny symbols like `?m1000`,
+this is probably what's going on.
 
-Let's use this definition of divides to prove that any divisor of 22
-is also a divisor of 220.
-
--/
-
-@[autograded 3]
-theorem problem_3 : ∀ x : ℕ, x ∣ 22 → x ∣ 220 := by
-  fix x
-  assume h
-  obtain ⟨c, eq⟩ := h
-  existsi 10 * c
-  have heq' : 22 * 10 = x * c * 10 := by rw eq
-  linarith
-  done
+You may or may not need to use rules backwards in the following problem.
 
 
-/-
-## Problem 4
+In recitation, you saw (or will see) a list of set identities:
+<https://brown-cs22.github.io/resources/math-resources/sets.pdf>
+All the identities on this list are available as rewrite rules in Lean,
+listed in the file `BrownCs22/Demos/SetIdentities.lean`.
 
-This time, you're going to practice a forall elimination!
-Remember the syntax for this:
-if you have a hypothesis `h : ∀ x : ℕ, MyProperty1 x ∧ MyProperty2 x`,
-you could write `have h2 : MyProperty1 100 ∧ MyProperty2 100 := h 100`,
-or even `have h4 : MyProperty1 my_var ∧ MyProperty2 my_var := h my_var`,
-if you have a variable named `my_var`.
-We say that we have *instantiated* the universal statement
-with `100` and `my_var`, respectively, "plugging in" these values for `x`.
+Use these rewrite rules to complete the following proof. Your proof should
+have the same structure as the example above:
+a sequence of rewrites, followed by `reflexivity`.
 
-Your creative step in this problem is to decide how to instantiate `h`.
-`h` says a certain proposition is true for every `x`.
-Which value of `x` is useful to you?
-
-Try to reason through this problem on paper before solving it in Lean.
-There's a hint at the bottom of this file.
-
-Notice that we've already introduced the hypothesis `h` for you in this problem.
-No need to start with `assume`.
+It might help to plan out your steps on paper!
 
 -/
 
-@[autograded 3]
-theorem problem_4 (a b : ℤ) (h : ∀ x : ℤ, 2*a ≤ x ∨ x ≤ 2*b) : a ≤ b := by
-  let x:= a + b
-  have h1: 2 * a ≤ a + b ∨ a + b ≤ 2 * b := h x
-  eliminate h1 with ha hb
-  {
-  linarith
-  }
-  {
-    linarith
-  }
-  done
+@[autograded 4]
+theorem problem_2 : (Aᶜ \ B)ᶜ = A ∪ B := by
+  rewrite diff_eq
+  rewrite compl_inter
+  rewrite compl_compl
+  rewrite compl_compl
+  reflexivity
+  done
 
-
-/-
-
-## Bonus challenge
-
-This one isn't for points, and doesn't have to do with numbers.
-But it's a fun logic puzzle.
-Try it if you're enjoying Lean and want a challenge.
-But don't feel bad if you can't figure it out!
-This problem relates to the infamous "barber paradox" (look it up!).
-
-A hint: the `have` syntax we used for modus ponens is very general.
-You can use this whenever you want, to create a new fact in your context.
-But you can't create a fact without justifying it.
-If you write, for instance, `have h_new_hyp : p ∧ q`
-(*without* a `:=` at the end, which we used for modus ponens),
-you will see that a new goal appears. First Lean wants you to prove `p ∧ q`.
-Then it wants you to return to your original goal, with a new hypothesis
-`h_new_hyp : p ∧ q` in your context.
-
-An example:
-
--/
-
-example (p q : Prop) (hp : p) (hq : q) : p := by
-  have hpq : p ∧ q -- after this line, the goal becomes to show `p ∧ q`
-  { split_goal     -- use brackets to focus on the first goal
-    assumption
-    assumption }
-  -- at this point in the proof, we have a new hypothesis `hpq : p ∧ q`.
-  -- but this was just a silly example so we don't need to use it
-  assumption
-
-/- Informally, this is like "reasoning forward". From things you already know,
-you're deriving a new thing, and then using that new thing later on.
-
-This technique is very helpful to finish this problem, when you look at
-the proof state and feel stuck. Try puzzling through it: what new thing(s)
-can you state and use?
-
--/
-
-theorem bonus_challenge (p : Prop) : ¬ (p ↔ ¬ p) := by
-  sorry
-  done
-
-/-
-
-## Problem 4 hint
-
-Just thinking informally, not in Lean:
-if `2*a ≤ a + b`, then `a ≤ b`,
-since we can subtract `a` from both sides.
-
--/
-
-end HW2
+end HW3
