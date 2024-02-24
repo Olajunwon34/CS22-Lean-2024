@@ -16,10 +16,10 @@ In these problems, we're going to get a little practice formally proving
 set equalities. We've seen two techniques for doing this on paper:
 
 * With the set-element method, we argue that `A = B` by showing that
-  `A ⊆ B` and `B ⊆ A`.
+  `A ⊆ B` and `B ⊆ A`.
 * With the algebraic method, we can prove that sets are equal by rewriting
-  one or both sides with algebraic identities like `(Aᶜ)ᶜ = A`, until we
-  have identical expressions.
+  one or both sides with algebraic identities like `(Aᶜ)ᶜ = A`, until we
+  have identical expressions.
 
 We can do both of these in Lean. In this assignment you'll prove two
 set equalities, one with each method.
@@ -27,7 +27,7 @@ set equalities, one with each method.
 **Notes**:
 
 * Remember that in Lean, we write "the complement of A" as `Aᶜ` instead
-  of using a bar over the letter. (Diacritics are hard in a text editor!)
+  of using a bar over the letter. (Diacritics are hard in a text editor!)
 
 * You can type `⊆` using `\sub`.
 
@@ -43,14 +43,14 @@ set equalities, one with each method.
 We saw two important tactics in lecture for set-element proofs in Lean:
 
 * `extensionality`: given a goal `A = B` where `A` and `B` are sets,
-  changes the goal to showing `∀ x, x ∈ A ↔ x ∈ B`.
-  The name "extensionality" refers to the property that two sets are equal
-  if they have the same elements.
+  changes the goal to showing `∀ x, x ∈ A ↔ x ∈ B`.
+  The name "extensionality" refers to the property that two sets are equal
+  if they have the same elements.
 
 * `set_simplify`: unfolds the "logic" of a set membership proposition.
-  For instance, `x ∈ A ∩ B` simplifies to `x ∈ A ∧ x ∈ B`.
-  `x ∈ A \ C` simplifies to `x ∈ A ∧ ¬(x ∈ C)`.
-  Calling `set_simplify` will simplify the goal and all hypotheses.
+  For instance, `x ∈ A ∩ B` simplifies to `x ∈ A ∧ x ∈ B`.
+  `x ∈ A \ C` simplifies to `x ∈ A ∧ ¬(x ∈ C)`.
+  Calling `set_simplify` will simplify the goal and all hypotheses.
 
 Use these techniques to prove the following.
 Starting with `extensionality` is probably a good move!
@@ -60,8 +60,19 @@ Then think about the last few homeworks; how do you prove an `↔` goal?
 
 @[autograded 4]
 theorem problem_1 : (A ∪ B) ∩ B = B := by
-  sorry
-  done
+  ext x
+  set_simplify
+  split_goal
+  { assume hleft
+    eliminate hleft with h_or h_and
+    assumption }
+  { assume hright
+    split_goal
+    { right
+      assumption }
+    { assumption }
+     }
+  done
 
 
 /-
@@ -81,10 +92,10 @@ Here's an example of using the above rule, and another useful rewrite rule:
 
 
 example : A ∩ ((Aᶜ ∩ B) ∪ Aᶜ) = ∅ := by
-  rewrite inter_union_cancel_left
-  rewrite inter_compl_self
-  reflexivity
-  done
+  rewrite inter_union_cancel_left
+  rewrite inter_compl_self
+  reflexivity
+  done
 
 /-
 
@@ -105,11 +116,11 @@ using the symbol `←` (typed `\l` or `\<-`). For example:
 -/
 
 example : Aᶜ ∩ Aᶜ = Aᶜ := by
-  rewrite ← compl_union -- we have used de morgan's law "backward",
-                        -- changing `Aᶜ ∩ Aᶜ` to `(A ∪ A)ᶜ`.
-  rewrite union_self
-  reflexivity
-  done
+  rewrite ← compl_union -- we have used de morgan's law "backward",
+                        -- changing `Aᶜ ∩ Aᶜ` to `(A ∪ A)ᶜ`.
+  rewrite union_self
+  reflexivity
+  done
 
 /-
 But this won't work for every identity! Think about `inter_compl_self`.
@@ -136,11 +147,11 @@ It might help to plan out your steps on paper!
 
 @[autograded 4]
 theorem problem_2 : (Aᶜ \ B)ᶜ = A ∪ B := by
-  sorry
-  done
-
-
-
-
+  rewrite diff_eq
+  rewrite compl_inter
+  rewrite compl_compl
+  rewrite compl_compl
+  reflexivity
+  done
 
 end HW3
